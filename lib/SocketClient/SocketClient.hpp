@@ -2,12 +2,16 @@
 #define SOCKET_CLIENT
 
 #include <ArduinoWebsockets.h>
+#include <string>
+
+using namespace std;
 
 using namespace websockets;
 
 class SocketClient
 {
 private:
+    int seq = 0;
     WebsocketsClient *p_client;
     /* data */
 public:
@@ -28,7 +32,6 @@ public:
         if (connected)
         {
             Serial.println("WebClient Connecetd!");
-            p_client->send("hello");
         }
         else
         {
@@ -36,12 +39,10 @@ public:
         }
 
         // run callback when messages are received
-        p_client->onMessage([&](WebsocketsMessage message)
+        p_client->onMessage([=](WebsocketsMessage message)
                             {
                                 Serial.print("WebClient Got onMessage: ");
                                 Serial.println(message.data());
-
-                                p_client->send("message");
                             });
 
         p_client->onEvent([=](WebsocketsEvent event, WSInterfaceString data)
@@ -49,6 +50,19 @@ public:
                               Serial.print("WebClient onEvent: ");
                               Serial.println(data);
                           });
+    }
+
+    void loop()
+    {
+        if (p_client->available())
+        {
+            string message = "seq " + to_string(seq++);
+            Serial.printf("WebClient Send Message: %s\n", message.c_str());
+            p_client->send(message.c_str());
+
+            p_client->poll();
+
+        }
     }
 };
 

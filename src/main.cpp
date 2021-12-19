@@ -5,6 +5,7 @@
 
 WebServer web_server;
 SocketClient socket_client;
+int loop_count;
 
 void setup()
 {
@@ -33,21 +34,22 @@ void setup()
   // socket server
 
   // socket client
-  // socket_client.connect("192.168.0.106", 81, "/");
+  socket_client.connect("192.168.0.106", 81, "/");
 }
 
-int count;
 void loop()
 {
   // web_server
   web_server.handleClient();
 
-  count++;
+  loop_count++;
 
-  if (count % 100000 == 0)
+  if (loop_count % 100000 == 0)
   {
     // Heap Free
     Serial.printf("Connect AP Count: (%d), Heap Free %d\n", WiFi.softAPgetStationNum(), ESP.getFreeHeap());
 
+    // socket client
+    socket_client.loop();
   }
 }
