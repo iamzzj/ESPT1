@@ -18,6 +18,13 @@ void setup()
       (char *)"GX",
       (char *)"999999999");
 
+  // wifi
+  Serial.printf("WiFi ssid ");
+  Serial.print(WiFi.SSID());
+  Serial.printf(" localIp: ");
+  Serial.print(WiFi.localIP());
+  Serial.printf("\n");
+
   wifi_manager.openWiFiAp(
       (char *)"1104",
       (char *)"1104wifipwd");
