@@ -2,7 +2,9 @@
 #include "WiFiManager.h"
 #include "WebServer.hpp"
 #include "SocketClient.hpp"
+#include "FileManager.hpp"
 
+FileManager file_Manager;
 WebServer web_server;
 SocketClient socket_client;
 int loop_count;
@@ -30,6 +32,10 @@ void setup()
       (char *)"1104wifipwd");
 
   IPAddress ap_ip_address = WiFi.softAPIP();
+
+  // file_manager
+  file_Manager.write("note.txt", "Hello World!!");
+  file_Manager.read("note.txt");
 
   // web_server
   web_server.start();

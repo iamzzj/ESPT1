@@ -2,8 +2,7 @@
 #define WEB_SERBER
 
 #include <ESP8266WebServer.h>
-
-const String INDEX_HTML = "<!DOCTYPE html><html><body><button>button</button></body></html>";
+#include <LittleFS.h>
 
 class WebServer
 {
@@ -15,6 +14,7 @@ public:
     WebServer() : port(80)
     {
         pinMode(LED_BUILTIN, OUTPUT);
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); //关闭系统灯，因为默认是打开的
         p_server = new ESP8266WebServer(port);
     }
 
@@ -49,11 +49,53 @@ public:
                          p_server->sendHeader("Location", "/button");
                          p_server->send(303);
                      });
-        p_server->on("/index.html", [=]()
-                     { p_server->send(200, "text/html", INDEX_HTML); });
         p_server->on("/get", HTTP_GET, [=]()
                      { p_server->send(200, "text/application", "{\"ret\": 1, \"msg\": \"success\"}"); });
+        p_server->onNotFound([=]()
+                             {
+                                 String web_address = p_server->uri();
+                                 Serial.printf("Web Server web_address: %s\n", web_address.c_str());
+                                 if (LittleFS.exists(web_address))
+                                 {
+                                     File file = LittleFS.open(web_address, "r");
+                                     p_server->streamFile(file, getContentType(web_address));
+                                     file.close();
+                                 }
+                                 else
+                                 {
+                                     p_server->send(404, "text/plain", "404 Not Found");
+                                 }
+                             });
         p_server->begin();
+    }
+
+    String getContentType(String filename)
+    {
+        if (filename.endsWith(".htm"))
+            return "text/html";
+        else if (filename.endsWith(".html"))
+            return "text/html";
+        else if (filename.endsWith(".css"))
+            return "text/css";
+        else if (filename.endsWith(".js"))
+            return "application/javascript";
+        else if (filename.endsWith(".png"))
+            return "image/png";
+        else if (filename.endsWith(".gif"))
+            return "image/gif";
+        else if (filename.endsWith(".jpg"))
+            return "image/jpeg";
+        else if (filename.endsWith(".ico"))
+            return "image/x-icon";
+        else if (filename.endsWith(".xml"))
+            return "text/xml";
+        else if (filename.endsWith(".pdf"))
+            return "application/x-pdf";
+        else if (filename.endsWith(".zip"))
+            return "application/x-zip";
+        else if (filename.endsWith(".gz"))
+            return "application/x-gzip";
+        return "text/plain";
     }
 
     void handleClient()
